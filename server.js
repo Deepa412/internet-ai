@@ -1,34 +1,65 @@
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+// =====================
+// BASIC MIDDLEWARE
+// =====================
+app.use(cors());
+app.use(express.json());
+
+// =====================
+// HEALTH CHECK (VERY IMPORTANT)
+// =====================
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    time: new Date().toISOString()
+  });
+});
+
+// =====================
+// ROOT ROUTE
+// =====================
+app.get("/", (req, res) => {
+  res.status(200).send("🚀 Internet AI Server is LIVE");
+});
+
+// =====================
+// CHAT API (CRASH SAFE + GUARANTEED RESPONSE)
+// =====================
 app.post("/chat", async (req, res) => {
   try {
-    const msg = req.body.message;
+    const msg = req.body?.message;
 
-    if (!msg) {
-      return res.json({ reply: "Please message send karo 👍" });
+    if (!msg || msg.trim() === "") {
+      return res.status(200).json({
+        reply: "❗ Please message send karo"
+      });
     }
 
-    let webInfo = "";
-
-    try {
-      const search = await axios.get(
-        `https://api.duckduckgo.com/?q=${msg}&format=json`
-      );
-
-      webInfo = search.data.AbstractText;
-    } catch (e) {
-      webInfo = "";
-    }
-
-    // ✔ GUARANTEED RESPONSE (NEVER EMPTY)
-    const reply =
-      webInfo && webInfo.length > 0
-        ? `🧠 ${msg}\n\n🌐 Info: ${webInfo}`
-        : `🧠 ${msg}\n\n💡 Main samajh gaya 👍\nTumhara question: ${msg}\n\n(Main AI mode me reply de raha hoon)`;
-
-    return res.json({ reply });
+    // ✔ ALWAYS RETURN RESPONSE (NO EXTERNAL FAIL DEPENDENCY)
+    return res.status(200).json({
+      reply: `🧠 Tumne poocha: ${msg}\n\n💡 Main abhi stable mode me chal raha hoon aur response de raha hoon.`
+    });
 
   } catch (err) {
-    return res.json({
-      reply: "Server active hai 👍 thoda error hua, but main chal raha hoon"
+    return res.status(200).json({
+      reply: "⚠️ Server error hua, but main still active hoon"
     });
   }
+});
+
+// =====================
+// PORT CONFIG (RAILWAY SAFE)
+// =====================
+const PORT = process.env.PORT;
+
+if (!PORT) {
+  console.log("PORT not found, waiting for Railway...");
+}
+
+app.listen(PORT || 3000, "0.0.0.0", () => {
+  console.log("🚀 Server running on port:", PORT || 3000);
 });
