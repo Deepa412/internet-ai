@@ -8,46 +8,40 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 📁 Serve frontend (index.html)
-app.use(express.static(__dirname));
+// ✔ SAFE STATIC FILE HANDLING
+app.use(express.static(path.join(__dirname)));
 
-// 🌐 Home route
+// ✔ HOME ROUTE (safe)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.send("🚀 Internet AI Server is Running");
 });
 
-// 🌐 AI + Internet endpoint
+// ✔ CHAT ENDPOINT (CRASH SAFE)
 app.post("/chat", async (req, res) => {
-  let msg = req.body.message;
-
   try {
-    // Internet info (DuckDuckGo)
-    let search = await axios.get(
+    const msg = req.body.message;
+
+    if (!msg) {
+      return res.json({ reply: "No message received" });
+    }
+
+    const search = await axios.get(
       `https://api.duckduckgo.com/?q=${msg}&format=json`
     );
 
-    let webInfo =
-      search.data.AbstractText || "No live data found from internet";
+    const webInfo =
+      search.data.AbstractText || "No internet info found";
 
-    // 🤖 Simple AI response (NO crash version)
-    let reply = `
-🧠 Question: ${msg}
-
-🌐 Internet Info:
-${webInfo}
-
-💡 Simple Answer:
-${webInfo}
-    `;
-
-    res.json({ reply });
+    return res.json({
+      reply: `🧠 Question: ${msg}\n\n🌐 Info: ${webInfo}`
+    });
 
   } catch (err) {
-    res.json({ reply: "Error in AI system" });
+    return res.json({ reply: "Server error occurred" });
   }
 });
 
-// 🚀 PORT (Railway safe)
+// ✔ IMPORTANT PORT FIX
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
