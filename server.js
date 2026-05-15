@@ -1,11 +1,14 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
-
+const path = require("path");
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(express.static(__dirname));
+app.get("/", (req, res) => {
+  res.send("🚀 Internet AI Server is running");
+});
 // 🌐 AI + Internet endpoint
 app.post("/chat", async (req, res) => {
   let msg = req.body.message;
@@ -37,6 +40,8 @@ Answer in simple Hindi:
   }
 });
 
-app.listen(3000, () =>
-  console.log("Server running on http://localhost:3000")
-);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port " + PORT);
+});
